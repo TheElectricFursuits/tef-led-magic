@@ -13,14 +13,18 @@
 
 #include "main.h"
 
+
+// TODO Check the version of DMA and
+// add a few porting macros. STM32F4 HAL code seems to have a different
+// DMA unit :/
+
+////////  NOTE: THIS WILL ONLY WORK WITH STM32F7 CODE FOR NOW
 #ifdef HAL_DMA_MODULE_ENABLED
 
 namespace TEF {
 namespace LED {
 namespace Matrix {
 
-
-// TODO write a nice readme doc!!
 struct HUB75_conf_t {
 	DMA_Stream_TypeDef * dma_stream;
 	DMA_TypeDef  * dma;
@@ -34,7 +38,7 @@ struct HUB75_conf_t {
 	GPIO_TypeDef * rowselect_gpio;
 	uint32_t       rowselect_shift;
 
-	uint32_t       data_ptr;
+	uint32_t       data_ptr;	// Pointer, cast to uint32_t, to the GPIO ODR register
 };
 
 template<int c_height, int c_width, int c_depth>
