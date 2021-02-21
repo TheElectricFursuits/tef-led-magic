@@ -5,6 +5,8 @@
  *      Author: xasin
  */
 
+#ifdef HAL_SPI_MODULE_ENABLED
+
 #include <tef/led/NeoController.h>
 
 #include <array>
@@ -67,9 +69,10 @@ void NeoController::push() {
 			write_u24(colours[i], (rg_swap_map[i/32] >> (i&31)) & 1);
 		}
 	}
-
 	HAL_SPI_Transmit_IT(spi, write_buffer.data(), length*12);
 }
 
 }
 } /* namespace TEF::LED */
+
+#endif

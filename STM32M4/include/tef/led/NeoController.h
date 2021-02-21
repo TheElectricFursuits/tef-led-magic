@@ -8,6 +8,8 @@
 #ifndef STM32F4_NEOCONTROLLER_NEOCONTROLLER_H_
 #define STM32F4_NEOCONTROLLER_NEOCONTROLLER_H_
 
+#ifdef HAL_SPI_MODULE_ENABLED
+
 #include "Colour.h"
 #include "Layer.h"
 
@@ -43,4 +45,5 @@ public:
 }
 } /* namespace TEF::LED */
 
+#endif
 #endif /* STM32F4_NEOCONTROLLER_NEOCONTROLLER_H_ */
