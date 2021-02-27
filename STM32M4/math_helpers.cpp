@@ -61,6 +61,15 @@ float line_dist_calc_t::dist_from(const point_t &point) const {
 
 polygon_t::polygon_t() : lines(), length(0), top_left(), bottom_right() {}
 
+polygon_t::polygon_t(polygon_t &&move) : lines(std::move(move.lines)),
+		length(move.length), top_left(move.top_left), bottom_right(move.bottom_right) {
+
+}
+polygon_t::polygon_t(const polygon_t &other) : lines(other.lines),
+		length(other.length), top_left(other.top_left), bottom_right(other.bottom_right) {
+
+}
+
 polygon_t::polygon_t(std::initializer_list<line_t> line_init) :
 		lines(line_init) {
 
@@ -154,6 +163,26 @@ void polygon_t::recalculate_length() {
 	}
 }
 
+polygon_t &polygon_t::operator =(polygon_t &&move) {
+	lines = std::move(move.lines);
+	length = move.length;
+
+	top_left = move.top_left;
+	bottom_right = move.bottom_right;
+
+	return *this;
+}
+
+polygon_t &polygon_t::operator =(const polygon_t &other) {
+	lines = other.lines;
+	length = other.length;
+
+	top_left = other.top_left;
+	bottom_right = other.bottom_right;
+
+	return *this;
+}
+
 polygon_t polygon_t::operator +(const point_t &point) const& {
 	polygon_t polycopy = *this;
 	polycopy += point;
@@ -204,6 +233,45 @@ polygon_t &polygon_t::operator *=(float scalar) {
 	return *this;
 }
 
+polygon_t &polygon_t::upscale_inplace(int n) {
+	// Return if we already have more lines
+	if(n <= int(lines.size()))
+		return *this;
+
+	const std::vector<line_t> line_copy = std::move(lines);
+	lines = {};
+
+	int prev_segment = 0;
+	int split_count = 0;
+
+	for(int seg_num = 0; seg_num <= n; seg_num++) {
+
+		int top_seg_num = (line_copy.size() * seg_num) / n;
+
+		if(top_seg_num == prev_segment) {
+			split_count++;
+		}
+		else {
+			line_t full_line = line_copy[prev_segment];
+
+			point_t line_increase = (full_line.end - full_line.start) / split_count;
+			full_line = {full_line.start, full_line.start + line_increase};
+
+			for(; split_count != 0; split_count--) {
+				lines.push_back(full_line);
+				full_line += line_increase;
+			}
+
+			prev_segment = top_seg_num;
+			split_count = 1;
+		}
+	}
+
+
+
+	return *this;
+}
+
 polygon_t &polygon_t::merge_inplace(const polygon_t &source, float amount) {
 	if(amount <= 0)
 		return *this;
@@ -213,8 +281,15 @@ polygon_t &polygon_t::merge_inplace(const polygon_t &source, float amount) {
 		return *this;
 	}
 
-	if(source.lines.size() != lines.size())
-		return *this;
+	if(source.lines.size() > lines.size())
+		upscale_inplace(source.lines.size());
+
+	if(lines.size() > source.lines.size()) {
+		polygon_t upscaled_source = source;
+		upscaled_source.upscale_inplace(lines.size());
+
+		return merge_inplace(upscaled_source, amount);
+	}
 
 	for(unsigned int i=0; i<lines.size(); i++) {
 		auto &l = lines[i];

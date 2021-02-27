@@ -134,10 +134,16 @@ protected:
 public:
 	polygon_t();
 
+	polygon_t(const polygon_t &other);
+	polygon_t(polygon_t &&move);
+
 	polygon_t(std::initializer_list<line_t>  lines);
 	static polygon_t from_points(std::initializer_list<point_t> vertices);
 
 	static polygon_t from_svg(const char *str);
+
+	polygon_t &operator =(polygon_t &&move);
+	polygon_t &operator =(const polygon_t &move);
 
 	polygon_t  operator  +(const point_t &point) const&;
 	polygon_t &operator +=(const point_t &point);
@@ -150,6 +156,10 @@ public:
 	polygon_t  operator  *(float scalar) const&;
 	polygon_t  &operator *=(float scalar);
 	inline polygon_t &operator *(float scalar) && { return (*this) *= scalar; };
+
+	// Upscale to a number of LINES, not vertices!
+	// Important distinction for nonmanifold polygons!
+	polygon_t &upscale_inplace(int n);
 
 	polygon_t &merge_inplace(const polygon_t &source, float amount);
 
